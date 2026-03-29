@@ -125,13 +125,16 @@
         if (timeLeft <= 0) { clearInterval(timerId); submitExam(); }
         timeLeft--;
     }
-
-    async function submitExam() {
+async function submitExam() {
+        // 1. Taymerni to'xtatish
         clearInterval(timerId);
+        
+        // 2. Tugmani yashirish va yuklash belgisini ko'rsatish
         document.getElementById('submitBtn').classList.add('hidden');
         document.getElementById('loading').classList.remove('hidden');
 
         try {
+            // 3. AI-ga (app.py) ma'lumotlarni yuborish
             const response = await fetch('/evaluate', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -142,24 +145,24 @@
                 })
             });
             
-            if (!response.ok) throw new Error('Serverda xatolik yuz berdi');
-            
             const data = await response.json();
-            
             document.getElementById('loading').classList.add('hidden');
             
+            // 4. AI-dan kelgan haqiqiy ballni olish
             let score = data.total_score;
             let feedback = data.feedback;
 
+            // 5. Faqat 38 balldan yuqori bo'lsa sertifikat ko'rsatish
             if (score >= 38) {
                 showCert(score);
                 alert("Tabriklaymiz! Ball: " + score + "\nFeedback: " + feedback);
             } else {
-                alert("Ball: " + score + ". Sertifikat uchun 38+ kerak.\nFeedback: " + feedback);
+                alert("Siz " + score + " ball oldingiz. Sertifikat uchun 38 ball kerak.\nFeedback: " + feedback);
             }
         } catch (error) {
             document.getElementById('loading').classList.add('hidden');
             document.getElementById('submitBtn').classList.remove('hidden');
-            alert("Xatolik: " + error.message);
+            alert("Xatolik: AI bilan bog'lanib bo'lmadi!");
         }
     }
+    a

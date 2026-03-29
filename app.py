@@ -4,35 +4,50 @@ from groq import Groq
 
 app = Flask(__name__)
 
-# Sizning Groq API kalitingiz
+# Groq API kalitingiz
 client = Groq(api_key="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")
 
 @app.route('/')
 def home():
-    # Bu funksiya templates papkasidagi index.html ni ochadi
     return render_template('index.html')
 
 @app.route('/evaluate', methods=['POST'])
 def evaluate():
     try:
         data = request.json
-        t1 = data.get('task1', '')
+        t11 = data.get('task11', '')
+        t12 = data.get('task12', '')
         t2 = data.get('task2', '')
 
+        # AI uchun batafsil instruksiya (Prompt)
         prompt = f"""
-        You are a professional CEFR examiner. 
-        Evaluate the following writing tasks:
-        Task 1: {t1}
-        Task 2: {t2}
+        You are an expert CEFR examiner. 
+        Analyze these three writing tasks for a student named Hojiakbar:
         
-        Provide a detailed CEFR band score and feedback for each.
+        1. Task 1.1 (Letter/Graph): {t11}
+        2. Task 1.2 (Report/Email): {t12}
+        3. Task 2 (Essay): {t2}
+        
+        Please provide:
+        - An overall CEFR Level (e.g., B2 or C1).
+        - Specific feedback for each task.
+        - Grammar and Vocabulary score (1-9 scale).
+        - One key tip for improvement.
+        
+        Keep the feedback professional and encouraging.
         """
         
         completion = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
-            messages=[{"role": "user", "content": prompt}]
+            messages=[
+                {"role": "system", "content": "You are a helpful and precise CEFR writing tutor."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7
         )
-        return jsonify({'result': completion.choices[0].message.content})
+        
+        result = completion.choices[0].message.content
+        return jsonify({'result': result})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 

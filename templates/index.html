@@ -1,1 +1,105 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CEFR Checker Pro - Hojiakbar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
+        .main-card { max-width: 900px; margin: 30px auto; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .task-box { margin-bottom: 20px; border-left: 5px solid #007bff; padding-left: 15px; }
+        .cert-container { display: none; margin-top: 30px; padding: 20px; border: 10px double #gold; background: #fff; position: relative; width: 100%; height: 500px; text-align: center; border: 15px solid #1a2a6c; background: linear-gradient(to right, #fdfbfb, #ebedee); }
+        .cert-title { font-size: 40px; color: #1a2a6c; font-weight: bold; margin-top: 50px; }
+        #qrcode { position: absolute; bottom: 30px; right: 30px; }
+        .upload-section { border: 2px dashed #ccc; padding: 20px; text-align: center; border-radius: 10px; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
 
+<div class="container">
+    <div class="main-card">
+        <h2 class="text-center mb-4 text-primary">CEFR Writing Professional Checker</h2>
+        
+        <div class="upload-section">
+            <label>Mavzu rasmini yuklash (ixtiyoriy):</label>
+            <input type="file" id="imageUpload" class="form-control mt-2" accept="image/*">
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 task-box">
+                <h5>Task 1.1 (Letter/Graph)</h5>
+                <textarea id="task11" class="form-control" rows="4" placeholder="Mavzuni shu yerga yozing..."></textarea>
+            </div>
+            <div class="col-md-6 task-box">
+                <h5>Task 1.2 (Report)</h5>
+                <textarea id="task12" class="form-control" rows="4" placeholder="Mavzuni shu yerga yozing..."></textarea>
+            </div>
+        </div>
+
+        <div class="task-box mt-3" style="border-left-color: #28a745;">
+            <h5>Task 2 (Essay)</h5>
+            <textarea id="task2" class="form-control" rows="6" placeholder="Essay mavzusini kiriting..."></textarea>
+        </div>
+
+        <button onclick="generateResult()" class="btn btn-primary btn-lg w-100 mt-4">Natijani olish va Sertifikat yaratish</button>
+
+        <div id="loading" class="text-center mt-3" style="display:none;">AI tahlil qilmoqda...</div>
+        <div id="analysisResult" class="mt-4 p-3 bg-light rounded" style="display:none;"></div>
+
+        <div id="certificate" class="cert-container">
+            <div class="cert-title">CERTIFICATE OF ACHIEVEMENT</div>
+            <p class="mt-4">This is to certify that the writing samples analyzed by AI</p>
+            <h3 id="certName" class="text-uppercase mt-2">Hojiakbar</h3>
+            <p>have reached an estimated CEFR level of:</p>
+            <h1 id="certLevel" style="color: #b92b27;">B2 / C1</h1>
+            <div id="qrcode"></div>
+            <p style="position: absolute; bottom: 30px; left: 30px;">Date: <span id="certDate"></span></p>
+        </div>
+        
+        <button id="downloadBtn" style="display:none;" onclick="downloadCert()" class="btn btn-success w-100 mt-3">Sertifikatni PDF yuklab olish</button>
+    </div>
+</div>
+
+<script>
+    async function generateResult() {
+        const btn = document.querySelector('button');
+        const loader = document.getElementById('loading');
+        loader.style.display = 'block';
+        
+        // AI ga yuborish (app.py dagi evaluate yo'liga)
+        // Hozircha namunaviy natija ko'rsatamiz:
+        setTimeout(() => {
+            loader.style.display = 'none';
+            document.getElementById('analysisResult').style.display = 'block';
+            document.getElementById('analysisResult').innerHTML = "<b>AI Feedback:</b> Hammasi a'lo! Lug'at boyligi va grammatika yuqori darajada.";
+            
+            showCertificate();
+        }, 2000);
+    }
+
+    function showCertificate() {
+        const cert = document.getElementById('certificate');
+        cert.style.display = 'block';
+        document.getElementById('downloadBtn').style.display = 'block';
+        document.getElementById('certDate').innerText = new Date().toLocaleDateString();
+        
+        // QR Kod yaratish
+        document.getElementById('qrcode').innerHTML = "";
+        new QRCode(document.getElementById("qrcode"), {
+            text: "https://cefr-checker.onrender.com/verify/hojiakbar",
+            width: 80,
+            height: 80
+        });
+    }
+
+    function downloadCert() {
+        const element = document.getElementById('certificate');
+        html2pdf().from(element).save('Hojiakbar_CEFR_Certificate.pdf');
+    }
+</script>
+
+</body>
+</html>

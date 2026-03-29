@@ -1,10 +1,9 @@
 import os
 from flask import Flask, render_template, request, jsonify
 from groq import Groq
+import json
 
 app = Flask(__name__)
-
-# Groq API kalitingiz
 client = Groq(api_key="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")
 
 @app.route('/')
@@ -19,35 +18,27 @@ def evaluate():
         t12 = data.get('task12', '')
         t2 = data.get('task2', '')
 
-        # AI uchun batafsil instruksiya (Prompt)
         prompt = f"""
-        You are an expert CEFR examiner. 
-        Analyze these three writing tasks for a student named Hojiakbar:
-        
-        1. Task 1.1 (Letter/Graph): {t11}
-        2. Task 1.2 (Report/Email): {t12}
-        3. Task 2 (Essay): {t2}
-        
-        Please provide:
-        - An overall CEFR Level (e.g., B2 or C1).
-        - Specific feedback for each task.
-        - Grammar and Vocabulary score (1-9 scale).
-        - One key tip for improvement.
-        
-        Keep the feedback professional and encouraging.
+        Analyze these CEFR writing tasks for Hojiakbar. 
+        Task 1.1: {t11}
+        Task 1.2: {t12}
+        Task 2: {t2}
+
+        IMPORTANT: You must return ONLY a JSON object with exactly these keys:
+        "total_score": (a number between 10 and 50),
+        "feedback": "your detailed feedback here"
         """
         
         completion = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
-            messages=[
-                {"role": "system", "content": "You are a helpful and precise CEFR writing tutor."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.7
+            messages=[{"role": "system", "content": "You are a CEFR examiner that only outputs JSON."},
+                      {"role": "user", "content": prompt}],
+            response_format={"type": "json_object"}
         )
         
-        result = completion.choices[0].message.content
-        return jsonify({'result': result})
+        # AI javobini qabul qilamiz
+        ai_response = json.loads(completion.choices[0].message.content)
+        return jsonify(ai_response)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 

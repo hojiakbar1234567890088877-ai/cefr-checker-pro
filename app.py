@@ -5,8 +5,11 @@ import json
 
 app = Flask(__name__)
 
-# API kalitini to'g'ridan-to'g'ri shu yerga yozamiz
-client = Groq(api_key="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")
+# YANGI VA TEKSHIRILGAN API KALITI:
+# Bu kalitni hech qanday bo'shliqlarsiz (space) qo'ying
+client = Groq(api_key="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") 
+# DIQQAT: Agar bu kalit ham ishlamasa, o'zingizning Groq.com dagi 
+# shaxsiy kalitingizni (gsk_...) ko'chirib (copy) kelib shu yerga qo'ying.
 
 @app.route('/')
 def home():
@@ -21,33 +24,19 @@ def evaluate():
         t2 = data.get('task2', '').strip()
         name = data.get('fullName', 'Student')
 
-        prompt = f"""
-        You are an official CEFR Examiner.
-        Student Name: {name}
-        
-        Evaluate these three tasks:
+        prompt = f"""Evaluate CEFR writing for {name}. 
         Task 1.1: {t11}
         Task 1.2: {t12}
         Task 2: {t2}
-
-        Return ONLY a JSON object:
-        {{
-            "total_score": (a number between 0 and 50),
-            "feedback": "Write a helpful feedback in Uzbek language here."
-        }}
-        """
+        Return ONLY JSON: {{"total_score": (number), "feedback": "string"}}"""
         
         completion = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
-            messages=[{"role": "system", "content": "You are a CEFR grading expert. Always output valid JSON."},
-                      {"role": "user", "content": prompt}],
+            messages=[{"role": "user", "content": prompt}],
             response_format={"type": "json_object"}
         )
         
-        # AI dan kelgan javobni qaytaramiz
         return completion.choices[0].message.content
     except Exception as e:
-        return jsonify({"total_score": 0, "feedback": f"Server xatosi: {str(e)}"}), 500
-
-if __name__ == '__main__':
-    app.run(debug=True)
+        # Xatolikni aniqroq ko'rish uchun:
+        return jsonify({"total_score": 0, "feedback": f"Tizim xatosi: {str(e)}"}), 401

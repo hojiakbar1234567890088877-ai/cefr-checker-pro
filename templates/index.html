@@ -3,163 +3,175 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CEFR Checker Pro - Muhammadiyev Hojiakbar</title>
+    <title>CEFR Exam Simulator - Hojiakbar</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        /* Asosiy fon ranglari (O'g'il bolalar uchun - Blue/Green) */
-        :root {
-            --primary-color: #007bff; /* Blue */
-            --secondary-color: #28a745; /* Green */
-            --bg-color: #f0f2f5;
-            --text-color: #2c3e50;
-        }
+        :root { --main-color: #1a2a6c; --sub-color: #b21f1f; --glass: rgba(255, 255, 255, 0.2); }
+        .gender-male { --main-color: #004e92; --sub-color: #000428; background: linear-gradient(135deg, #004e92, #000428); }
+        .gender-female { --main-color: #ff0084; --sub-color: #33001b; background: linear-gradient(135deg, #ff0084, #33001b); }
 
-        /* Qiz bolalar uchun ranglar (Qizil/Pushti) */
-        .gender-female {
-            --primary-color: #e83e8c; /* Pushti */
-            --secondary-color: #dc3545; /* Qizil */
-            --bg-color: #fff0f3;
-            --text-color: #5d001e;
-        }
-
-        body { background: var(--bg-color); font-family: 'Segoe UI', sans-serif; color: var(--text-color); transition: background 0.5s; }
-        .main-card { max-width: 900px; margin: 30px auto; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: none; } /* Avval yashiramiz */
-        .task-box { margin-bottom: 20px; border-left: 5px solid var(--primary-color); padding-left: 15px; }
-        .btn-primary { background-color: var(--primary-color); border-color: var(--primary-color); }
-        .btn-primary:hover { background-color: var(--secondary-color); border-color: var(--secondary-color); }
+        body { min-height: 100vh; font-family: 'Poppins', sans-serif; transition: 1s; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; }
         
-        /* Intro (Xush kelibsiz) oynasi */
-        #intro-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 255, 255, 0.95); /* Shaffof oq fon */
-            display: flex; justify-content: center; align-items: center;
-            z-index: 1000; transition: opacity 1s; text-align: center;
-        }
-        #intro-content h1 { font-size: 48px; color: #1a2a6c; margin-bottom: 20px; animation: fadeInDown 1s; }
-        #intro-content p { font-size: 24px; color: #555; animation: fadeInUp 1s 0.5s both; }
+        /* Step 1: Login UI */
+        #auth-screen { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); text-align: center; width: 400px; z-index: 10; }
+        
+        /* Step 2: Topic Entry */
+        #topic-screen { display: none; background: white; padding: 30px; border-radius: 20px; width: 600px; }
 
-        /* Sertifikat va boshqa uslublar (o'zgarishsiz qoladi) */
-        .cert-container { display: none; margin-top: 30px; padding: 20px; text-align: center; border: 15px solid #1a2a6c; background: linear-gradient(to right, #fdfbfb, #ebedee); position: relative; height: 500px; }
-        .cert-title { font-size: 40px; color: #1a2a6c; font-weight: bold; margin-top: 50px; }
-        #qrcode { position: absolute; bottom: 30px; right: 30px; }
-        .upload-section { border: 2px dashed #ccc; padding: 20px; text-align: center; border-radius: 10px; margin-bottom: 20px; }
+        /* Step 3: Exam UI */
+        #exam-screen { display: none; width: 95%; max-width: 1200px; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); padding: 30px; border-radius: 25px; height: 90vh; overflow-y: auto; }
 
-        /* Animatsiyalar */
-        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .timer-box { position: sticky; top: 0; background: var(--main-color); color: white; padding: 10px 20px; border-radius: 50px; font-size: 24px; font-weight: bold; text-align: center; z-index: 100; margin-bottom: 20px; }
+        
+        textarea { border-radius: 15px !important; border: 2px solid #eee !important; transition: 0.3s; font-size: 16px; }
+        textarea:focus { border-color: var(--main-color) !important; box-shadow: none !important; }
+
+        /* Certificate Design */
+        .cert-card { display: none; width: 800px; height: 550px; padding: 40px; border: 20px solid var(--main-color); background: #fff; position: relative; margin: 20px auto; text-align: center; }
+        .cert-male { background: url('https://www.transparenttextures.com/patterns/cubes.png'), linear-gradient(to bottom, #ffffff, #e6f2ff); }
+        .cert-female { background: url('https://www.transparenttextures.com/patterns/soft-wallpaper.png'), linear-gradient(to bottom, #ffffff, #fff0f5); border-color: #ff0084; }
+        
+        .hidden { display: none !important; }
     </style>
 </head>
-<body>
+<body class="gender-male">
 
-<div id="intro-overlay">
-    <div id="intro-content">
-        <h1>Xush kelibsiz!</h1>
-        <p>Muhammadiyev Hojiakbarning<br><strong>CEFR Checker</strong> saytiga</p>
-        <div class="mt-4">
-            <input type="text" id="userName" class="form-control form-control-lg text-center" placeholder="Ismingizni kiriting...">
-            <div class="mt-3">
-                <button onclick="selectGender('male')" class="btn btn-outline-primary btn-lg mx-2">O'g'il bola</button>
-                <button onclick="selectGender('female')" class="btn btn-outline-danger btn-lg mx-2">Qiz bola</button>
-            </div>
-        </div>
+<div id="auth-screen">
+    <h2 class="mb-4">CEFR Exam Entry</h2>
+    <input type="text" id="fullName" class="form-control mb-3" placeholder="Ism va Familiyangiz">
+    <div class="d-flex justify-content-between mb-4">
+        <button onclick="setGender('male')" class="btn btn-primary w-100 me-2">O'g'il bola</button>
+        <button onclick="setGender('female')" class="btn btn-danger w-100 ms-2">Qiz bola</button>
     </div>
 </div>
 
-<div class="container">
-    <div class="main-card">
-        <h2 class="text-center mb-4 text-primary">CEFR Writing Professional Checker</h2>
-        
-        <div class="upload-section">
-            <label>Mavzu rasmini yuklash (ixtiyoriy):</label>
-            <input type="file" id="imageUpload" class="form-control mt-2" accept="image/*">
+<div id="topic-screen">
+    <h3 class="text-center mb-4">Imtihon Mavzularini Kiriting</h3>
+    <input type="text" id="t11_topic" class="form-control mb-3" placeholder="Task 1.1 Mavzusi">
+    <input type="text" id="t12_topic" class="form-control mb-3" placeholder="Task 1.2 Mavzusi">
+    <input type="text" id="t2_topic" class="form-control mb-3" placeholder="Task 2 (Essay) Mavzusi">
+    <button onclick="startExam()" class="btn btn-dark w-100">Imtihonni Boshlash (1 soat)</button>
+</div>
+
+<div id="exam-screen">
+    <div class="timer-box" id="timer">60:00</div>
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <h5 id="display_t11">Task 1.1</h5>
+            <textarea id="ans11" class="form-control" rows="8" placeholder="Javobingizni shu yerga yozing..."></textarea>
         </div>
-
-        <div class="row">
-            <div class="col-md-6 task-box">
-                <h5>Task 1.1 (Letter/Graph)</h5>
-                <textarea id="task11" class="form-control" rows="4" placeholder="Mavzuni shu yerga yozing..."></textarea>
-            </div>
-            <div class="col-md-6 task-box">
-                <h5>Task 1.2 (Report)</h5>
-                <textarea id="task12" class="form-control" rows="4" placeholder="Mavzuni shu yerga yozing..."></textarea>
-            </div>
+        <div class="col-md-6 mb-4">
+            <h5 id="display_t12">Task 1.2</h5>
+            <textarea id="ans12" class="form-control" rows="8" placeholder="Javobingizni shu yerga yozing..."></textarea>
         </div>
-
-        <div class="task-box mt-3" style="border-left-color: #28a745;">
-            <h5>Task 2 (Essay)</h5>
-            <textarea id="task2" class="form-control" rows="6" placeholder="Essay mavzusini kiriting..."></textarea>
+        <div class="col-12">
+            <h5 id="display_t2">Task 2 (Essay)</h5>
+            <textarea id="ans2" class="form-control" rows="12" placeholder="Essayni shu yerga yozing..."></textarea>
         </div>
-
-        <button onclick="generateResult()" class="btn btn-primary btn-lg w-100 mt-4">Natijani olish va Sertifikat yaratish</button>
-
-        <div id="loading" class="text-center mt-3" style="display:none;">AI tahlil qilmoqda...</div>
-        <div id="analysisResult" class="mt-4 p-3 bg-light rounded" style="display:none;"></div>
-
-        <div id="certificate" class="cert-container">
-            <div class="cert-title">CERTIFICATE OF ACHIEVEMENT</div>
-            <p class="mt-4">This is to certify that the writing samples analyzed by AI</p>
-            <h3 id="certName" class="text-uppercase mt-2"></h3> <p>have reached an estimated CEFR level of:</p>
-            <h1 id="certLevel" style="color: #b92b27;">B2 / C1</h1>
-            <div id="qrcode"></div>
-            <p style="position: absolute; bottom: 30px; left: 30px;">Date: <span id="certDate"></span></p>
-        </div>
-        
-        <button id="downloadBtn" style="display:none;" onclick="downloadCert()" class="btn btn-success w-100 mt-3">Sertifikatni PDF yuklab olish</button>
     </div>
+    <button onclick="submitExam()" id="submitBtn" class="btn btn-success btn-lg w-100 mt-4">Imtihonni Yakunlash</button>
+    
+    <div id="loading" class="text-center mt-4 hidden"><h4>AI tekshirmoqda...</h4></div>
+    
+    <div id="certificate" class="cert-card">
+        <h1 style="font-size: 50px; font-weight: 900;">CERTIFICATE</h1>
+        <p>This is to certify that</p>
+        <h2 id="certName" style="color: var(--main-color);"></h2>
+        <p>successfully completed the AI CEFR Exam with a score of</p>
+        <h1 id="certScore" style="color: red; font-size: 60px;"></h1>
+        <div id="qrcode" style="position:absolute; bottom:40px; right:40px;"></div>
+        <div style="position:absolute; bottom:40px; left:40px; text-align:left;">
+            <p>Date: <span id="certDate"></span></p>
+            <p>ID: #<span id="certId"></span></p>
+        </div>
+    </div>
+    <button id="downloadBtn" class="btn btn-warning w-100 mt-3 hidden" onclick="downloadPDF()">Sertifikatni PDF Yuklash</button>
 </div>
 
 <script>
-    // Jins tanlash va ranglarni o'zgartirish
-    function selectGender(gender) {
-        const name = document.getElementById('userName').value;
-        if (!name) { alert("Iltimos, ismingizni kiriting!"); return; }
+    let gender = 'male';
+    let timeLeft = 3600; // 1 hour
+    let timerId;
 
-        // Sertifikatga ismni yozish
-        document.getElementById('certName').innerText = name;
+    function setGender(g) {
+        gender = g;
+        document.body.className = 'gender-' + g;
+        document.getElementById('auth-screen').classList.add('hidden');
+        document.getElementById('topic-screen').style.display = 'block';
+    }
 
-        // Ranglarni o'zgartirish
-        if (gender === 'female') {
-            document.body.classList.add('gender-female');
-        } else {
-            document.body.classList.remove('gender-female'); // Defolt (erkak) ranglari
+    function startExam() {
+        document.getElementById('display_t11').innerText = "Task 1.1: " + document.getElementById('t11_topic').value;
+        document.getElementById('display_t12').innerText = "Task 1.2: " + document.getElementById('t12_topic').value;
+        document.getElementById('display_t2').innerText = "Task 2: " + document.getElementById('t2_topic').value;
+        
+        document.getElementById('topic-screen').classList.add('hidden');
+        document.getElementById('exam-screen').style.display = 'block';
+        
+        timerId = setInterval(updateTimer, 1000);
+    }
+
+    function updateTimer() {
+        let mins = Math.floor(timeLeft / 60);
+        let secs = timeLeft % 60;
+        document.getElementById('timer').innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+        if (timeLeft <= 300) document.getElementById('timer').style.background = 'red';
+        if (timeLeft <= 0) {
+            clearInterval(timerId);
+            submitExam();
         }
-
-        // Intro oynasini yopish (5 soniyadan keyin)
-        const intro = document.getElementById('intro-overlay');
-        intro.style.opacity = '0';
-        setTimeout(() => {
-            intro.style.display = 'none';
-            document.querySelector('.main-card').style.display = 'block'; // Asosiy kartani ko'rsatish
-        }, 1000); // 1 soniyada yo'qoladi, 5 soniyalik animatsiya CSS'da
+        timeLeft--;
     }
 
-    // (Boshqa JavaScript funksiyalar o'zgarishsiz qoladi...)
-    async function generateResult() {
-        // ... (app.py ga so'rov yuborish kodi) ...
-        showCertificate();
+    async function submitExam() {
+        clearInterval(timerId);
+        document.getElementById('submitBtn').classList.add('hidden');
+        document.getElementById('loading').classList.remove('hidden');
+
+        const response = await fetch('/evaluate', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                task11: document.getElementById('ans11').value,
+                task12: document.getElementById('ans12').value,
+                task2: document.getElementById('ans2').value
+            })
+        });
+        const data = await response.json();
+        
+        // AI dan kelgan ballni ajratib olish (Simulyatsiya: AI 40 ball berdi deb hisoblaymiz)
+        let score = 40; // Bu yerda data.result dan scoreni regex orqali sug'urib olish kerak
+        
+        document.getElementById('loading').classList.add('hidden');
+        alert("Tekshiruv yakunlandi! Balingiz: " + score);
+
+        if (score >= 38) {
+            showCert(score);
+        } else {
+            alert("Sertifikat uchun kamida 38 ball kerak. Sizniki: " + score);
+        }
     }
 
-    function showCertificate() {
+    function showCert(score) {
         const cert = document.getElementById('certificate');
         cert.style.display = 'block';
-        document.getElementById('downloadBtn').style.display = 'block';
+        cert.className = 'cert-card ' + (gender === 'male' ? 'cert-male' : 'cert-female');
+        document.getElementById('certName').innerText = document.getElementById('fullName').value;
+        document.getElementById('certScore').innerText = score;
         document.getElementById('certDate').innerText = new Date().toLocaleDateString();
-        
-        // QR Kod yaratish
+        document.getElementById('certId').innerText = Math.floor(Math.random() * 90000) + 10000;
+        document.getElementById('downloadBtn').classList.remove('hidden');
+
         document.getElementById('qrcode').innerHTML = "";
-        new QRCode(document.getElementById("qrcode"), {
-            text: "https://cefr-checker-pro.onrender.com/verify/" + document.getElementById('certName').innerText,
-            width: 80, height: 80
-        });
+        new QRCode(document.getElementById("qrcode"), { text: "Verified by Hojiakbar AI", width: 100, height: 100 });
     }
 
-    function downloadCert() {
+    function downloadPDF() {
         const element = document.getElementById('certificate');
-        html2pdf().from(element).save(document.getElementById('certName').innerText + '_CEFR_Certificate.pdf');
+        html2pdf().from(element).save('Certificate.pdf');
     }
 </script>
-
 </body>
 </html>

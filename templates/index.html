@@ -8,84 +8,95 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        :root { --main-color: #1a2a6c; --sub-color: #b21f1f; }
+        :root { --main-color: #1a2a6c; }
         .gender-male { --main-color: #004e92; background: linear-gradient(135deg, #004e92, #000428); }
         .gender-female { --main-color: #ff0084; background: linear-gradient(135deg, #ff0084, #33001b); }
 
-        body { min-height: 100vh; font-family: 'Poppins', sans-serif; margin: 0; display: flex; align-items: center; justify-content: center; background: #1a2a6c; color: white; transition: 1s; }
+        body { min-height: 100vh; font-family: 'Poppins', sans-serif; margin: 0; display: flex; align-items: center; justify-content: center; background: #1a2a6c; transition: 1s; color: #333; }
 
-        /* STEP 0: 5 SONIYALIK INTRO */
+        /* STEP 0: INTRO */
         #welcome-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #1a2a6c; display: flex; flex-direction: column;
             justify-content: center; align-items: center; z-index: 2000;
-            text-align: center; transition: opacity 1s ease;
+            text-align: center; color: white; transition: opacity 1s;
         }
-        .loader-bar { width: 200px; height: 4px; background: rgba(255,255,255,0.2); margin-top: 20px; border-radius: 10px; overflow: hidden; }
-        .loader-fill { width: 0%; height: 100%; background: white; animation: load 5s linear forwards; }
+        .loader-bar { width: 250px; height: 5px; background: rgba(255,255,255,0.2); margin-top: 20px; border-radius: 10px; overflow: hidden; }
+        .loader-fill { width: 0%; height: 100%; background: #ffd700; animation: load 5s linear forwards; }
         @keyframes load { to { width: 100%; } }
 
-        /* STEP 1: AUTH SCREEN */
-        #auth-screen { display: none; background: white; padding: 40px; border-radius: 20px; color: #333; width: 400px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); animation: fadeIn 1s; }
+        /* CONTAINERS */
+        .glass-box { background: rgba(255, 255, 255, 0.95); padding: 40px; border-radius: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); width: 100%; max-width: 500px; display: none; animation: fadeIn 0.8s; }
+        #exam-screen { max-width: 1100px; height: 90vh; overflow-y: auto; }
 
-        /* STEP 2 & 3 (Qolganlari avvalgidek...) */
-        #topic-screen, #exam-screen { display: none; background: white; border-radius: 20px; color: #333; }
-        #exam-screen { width: 95%; max-width: 1200px; padding: 30px; height: 90vh; overflow-y: auto; }
+        .timer-box { position: sticky; top: 0; background: var(--main-color); color: white; padding: 12px; border-radius: 50px; text-align: center; font-size: 22px; font-weight: bold; z-index: 100; margin-bottom: 20px; }
         
-        .timer-box { position: sticky; top: 0; background: var(--main-color); color: white; padding: 10px; border-radius: 50px; text-align: center; font-weight: bold; margin-bottom: 20px; }
         .hidden { display: none !important; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Certificate Style */
+        .cert-card { display: none; width: 800px; height: 550px; padding: 40px; border: 15px solid var(--main-color); background: white; margin: 20px auto; position: relative; text-align: center; }
     </style>
 </head>
 <body class="gender-male">
 
 <div id="welcome-screen">
-    <h1 style="font-size: 3rem; font-weight: 800; padding: 20px;">
+    <h1 style="font-size: 2.5rem; font-weight: 800; line-height: 1.4;">
         Muhammadiyev Hojiakbar Tomonidan yaratilgan <br>
         <span style="color: #ffd700;">CEFR Checker</span>-ga xush kelibsiz!
     </h1>
     <div class="loader-bar"><div class="loader-fill"></div></div>
-    <p class="mt-3">Tayyorlanmoqda...</p>
+    <p class="mt-3">Yuklanmoqda...</p>
 </div>
 
-<div id="auth-screen">
-    <h2 class="mb-4 text-center">Tizimga kirish</h2>
-    <input type="text" id="fullName" class="form-control mb-3" placeholder="Ism va Familiyangiz">
-    <div class="d-flex justify-content-between mb-4">
-        <button onclick="setGender('male')" class="btn btn-primary w-100 me-2">O'g'il bola</button>
-        <button onclick="setGender('female')" class="btn btn-danger w-100 ms-2">Qiz bola</button>
+<div id="auth-screen" class="glass-box text-center">
+    <h2 class="mb-4">Ro'yxatdan o'tish</h2>
+    <input type="text" id="fullName" class="form-control form-control-lg mb-3" placeholder="Ism va Familiyangiz">
+    <div class="d-flex gap-2 mb-3">
+        <button onclick="setGender('male')" class="btn btn-primary w-100 py-2">O'g'il bola</button>
+        <button onclick="setGender('female')" class="btn btn-danger w-100 py-2">Qiz bola</button>
     </div>
 </div>
 
-<div id="topic-screen" class="p-5">
+<div id="topic-screen" class="glass-box">
     <h3 class="text-center mb-4">Imtihon Mavzulari</h3>
     <input type="text" id="t11_topic" class="form-control mb-3" placeholder="Task 1.1 Mavzusi">
     <input type="text" id="t12_topic" class="form-control mb-3" placeholder="Task 1.2 Mavzusi">
-    <input type="text" id="t2_topic" class="form-control mb-3" placeholder="Task 2 Mavzusi">
-    <button onclick="startExam()" class="btn btn-dark w-100">Boshlash (1 soat)</button>
+    <input type="text" id="t2_topic" class="form-control mb-3" placeholder="Task 2 (Essay) Mavzusi">
+    <button onclick="startExam()" class="btn btn-dark w-100 btn-lg">Imtihonni Boshlash</button>
 </div>
 
-<div id="exam-screen">
+<div id="exam-screen" class="glass-box">
     <div class="timer-box" id="timer">60:00</div>
     <div class="row">
-        <div class="col-md-6 mb-4">
-            <h5 id="display_t11">Task 1.1</h5>
-            <textarea id="ans11" class="form-control" rows="8"></textarea>
+        <div class="col-md-6 mb-3">
+            <h6 id="display_t11" class="fw-bold">Task 1.1</h6>
+            <textarea id="ans11" class="form-control" rows="6" placeholder="Javobingiz..."></textarea>
         </div>
-        <div class="col-md-6 mb-4">
-            <h5 id="display_t12">Task 1.2</h5>
-            <textarea id="ans12" class="form-control" rows="8"></textarea>
+        <div class="col-md-6 mb-3">
+            <h6 id="display_t12" class="fw-bold">Task 1.2</h6>
+            <textarea id="ans12" class="form-control" rows="6" placeholder="Javobingiz..."></textarea>
         </div>
-        <div class="col-12">
-            <h5 id="display_t2">Task 2</h5>
-            <textarea id="ans2" class="form-control" rows="12"></textarea>
+        <div class="col-12 mb-3">
+            <h6 id="display_t2" class="fw-bold">Task 2 (Essay)</h6>
+            <textarea id="ans2" class="form-control" rows="10" placeholder="Essayni shu yerga yozing..."></textarea>
         </div>
     </div>
-    <button onclick="submitExam()" id="submitBtn" class="btn btn-success btn-lg w-100 mt-4">Yakunlash</button>
+    <button onclick="submitExam()" id="submitBtn" class="btn btn-success btn-lg w-100 mt-2">Imtihonni Yakunlash</button>
+    <div id="loading" class="text-center mt-3 hidden"><h4>AI tahlil qilmoqda, kuting...</h4></div>
+    
+    <div id="certificate" class="cert-card mt-4">
+        <h1 style="font-weight: 900; color: var(--main-color);">CERTIFICATE</h1>
+        <p class="mt-4">This is to certify that</p>
+        <h2 id="certName" style="text-decoration: underline;"></h2>
+        <p>successfully passed the CEFR writing exam with a score of</p>
+        <h1 id="certScore" style="color: red; font-size: 55px;">0</h1>
+        <div id="qrcode" style="position: absolute; bottom: 30px; right: 30px;"></div>
+    </div>
 </div>
 
 <script>
-    // 1. Intro 5 soniya turishi uchun:
+    // 1. Intro 5 soniya
     window.onload = function() {
         setTimeout(() => {
             const welcome = document.getElementById('welcome-screen');
@@ -94,7 +105,7 @@
                 welcome.style.display = 'none';
                 document.getElementById('auth-screen').style.display = 'block';
             }, 1000);
-        }, 5000); // 5 soniya kutiladi
+        }, 5000);
     };
 
     let gender = 'male';
@@ -102,9 +113,10 @@
     let timerId;
 
     function setGender(g) {
+        if (!document.getElementById('fullName').value) { alert("Ismingizni kiriting!"); return; }
         gender = g;
         document.body.className = 'gender-' + g;
-        document.getElementById('auth-screen').classList.add('hidden');
+        document.getElementById('auth-screen').style.display = 'none';
         document.getElementById('topic-screen').style.display = 'block';
     }
 
@@ -113,7 +125,7 @@
         document.getElementById('display_t12').innerText = "Task 1.2: " + document.getElementById('t12_topic').value;
         document.getElementById('display_t2').innerText = "Task 2: " + document.getElementById('t2_topic').value;
         
-        document.getElementById('topic-screen').classList.add('hidden');
+        document.getElementById('topic-screen').style.display = 'none';
         document.getElementById('exam-screen').style.display = 'block';
         timerId = setInterval(updateTimer, 1000);
     }
@@ -125,16 +137,13 @@
         if (timeLeft <= 0) { clearInterval(timerId); submitExam(); }
         timeLeft--;
     }
-async function submitExam() {
-        // 1. Taymerni to'xtatish
+
+    async function submitExam() {
         clearInterval(timerId);
-        
-        // 2. Tugmani yashirish va yuklash belgisini ko'rsatish
         document.getElementById('submitBtn').classList.add('hidden');
         document.getElementById('loading').classList.remove('hidden');
 
         try {
-            // 3. AI-ga (app.py) ma'lumotlarni yuborish
             const response = await fetch('/evaluate', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -144,25 +153,22 @@ async function submitExam() {
                     task2: document.getElementById('ans2').value
                 })
             });
-            
             const data = await response.json();
             document.getElementById('loading').classList.add('hidden');
-            
-            // 4. AI-dan kelgan haqiqiy ballni olish
-            let score = data.total_score;
-            let feedback = data.feedback;
 
-            // 5. Faqat 38 balldan yuqori bo'lsa sertifikat ko'rsatish
+            let score = data.total_score || 0;
             if (score >= 38) {
-                showCert(score);
-                alert("Tabriklaymiz! Ball: " + score + "\nFeedback: " + feedback);
-            } else {
-                alert("Siz " + score + " ball oldingiz. Sertifikat uchun 38 ball kerak.\nFeedback: " + feedback);
+                document.getElementById('certificate').style.display = 'block';
+                document.getElementById('certName').innerText = document.getElementById('fullName').value;
+                document.getElementById('certScore').innerText = score;
+                new QRCode(document.getElementById("qrcode"), { text: "Verified Hojiakbar AI", width: 80, height: 80 });
             }
-        } catch (error) {
-            document.getElementById('loading').classList.add('hidden');
+            alert("Sizning balingiz: " + score + "\n\nFeedback: " + data.feedback);
+        } catch (e) {
+            alert("Xatolik yuz berdi. Internetni tekshiring.");
             document.getElementById('submitBtn').classList.remove('hidden');
-            alert("Xatolik: AI bilan bog'lanib bo'lmadi!");
         }
     }
-    a
+</script>
+</body>
+</html>

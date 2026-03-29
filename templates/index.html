@@ -127,9 +127,39 @@
     }
 
     async function submitExam() {
-        // Avvalgi app.py ga yuborish kodi bu yerga tushadi
-        alert("Imtihon topshirildi! Tekshiruv kutilmoqda...");
+        clearInterval(timerId);
+        document.getElementById('submitBtn').classList.add('hidden');
+        document.getElementById('loading').classList.remove('hidden');
+
+        try {
+            const response = await fetch('/evaluate', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    task11: document.getElementById('ans11').value,
+                    task12: document.getElementById('ans12').value,
+                    task2: document.getElementById('ans2').value
+                })
+            });
+            
+            if (!response.ok) throw new Error('Serverda xatolik yuz berdi');
+            
+            const data = await response.json();
+            
+            document.getElementById('loading').classList.add('hidden');
+            
+            let score = data.total_score;
+            let feedback = data.feedback;
+
+            if (score >= 38) {
+                showCert(score);
+                alert("Tabriklaymiz! Ball: " + score + "\nFeedback: " + feedback);
+            } else {
+                alert("Ball: " + score + ". Sertifikat uchun 38+ kerak.\nFeedback: " + feedback);
+            }
+        } catch (error) {
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('submitBtn').classList.remove('hidden');
+            alert("Xatolik: " + error.message);
+        }
     }
-</script>
-</body>
-</html>

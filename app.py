@@ -4,6 +4,8 @@ from groq import Groq
 import json
 
 app = Flask(__name__)
+
+# API kalitini to'g'ridan-to'g'ri shu yerga yozamiz
 client = Groq(api_key="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")
 
 @app.route('/')
@@ -17,37 +19,35 @@ def evaluate():
         t11 = data.get('task11', '').strip()
         t12 = data.get('task12', '').strip()
         t2 = data.get('task2', '').strip()
-
-        # Agar hamma joy bo'sh bo'lsa
-        if len(t11) < 10 and len(t12) < 10 and len(t2) < 10:
-            return jsonify({"total_score": 0, "feedback": "Hech qanday matn kiritilmadi yoki matn juda qisqa."})
+        name = data.get('fullName', 'Student')
 
         prompt = f"""
-        You are a strict CEFR Examiner. Evaluate Hojiakbar's writing.
-        Criteria:
-        - If the text is gibberish, random letters, or unrelated to the topic, give a score of 0-5.
-        - Evaluate Task 1.1: {t11}
-        - Evaluate Task 1.2: {t12}
-        - Evaluate Task 2: {t2}
+        You are an official CEFR Examiner.
+        Student Name: {name}
+        
+        Evaluate these three tasks:
+        Task 1.1: {t11}
+        Task 1.2: {t12}
+        Task 2: {t2}
 
         Return ONLY a JSON object:
         {{
-            "total_score": (number from 0 to 50),
-            "feedback": "Detailed explanation of the score"
+            "total_score": (a number between 0 and 50),
+            "feedback": "Write a helpful feedback in Uzbek language here."
         }}
         """
         
         completion = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
-            messages=[{"role": "system", "content": "You are a precise CEFR grading bot. Output only JSON."},
+            messages=[{"role": "system", "content": "You are a CEFR grading expert. Always output valid JSON."},
                       {"role": "user", "content": prompt}],
             response_format={"type": "json_object"}
         )
         
-        result = json.loads(completion.choices[0].message.content)
-        return jsonify(result)
+        # AI dan kelgan javobni qaytaramiz
+        return completion.choices[0].message.content
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"total_score": 0, "feedback": f"Server xatosi: {str(e)}"}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
